@@ -40,8 +40,10 @@ def save_seen_ids(ids: set) -> None:
 
 
 def build_feed_url() -> str:
-    lang = os.environ.get("NEWS_LANG", "en")
-    country = os.environ.get("NEWS_COUNTRY", "NG")
+    # GitHub Actions passes unset repo variables through as an empty string,
+    # not as a missing key - so fall back to defaults on empty too.
+    lang = os.environ.get("NEWS_LANG", "").strip() or "en"
+    country = os.environ.get("NEWS_COUNTRY", "").strip() or "US"
     topic = os.environ.get("NEWS_TOPIC", "").strip()
 
     if topic:
@@ -79,7 +81,8 @@ def pick_new_stories(seen_ids: set, count: int):
 
 
 def main():
-    num_drafts = int(os.environ.get("NUM_DRAFTS", "3"))
+    num_drafts_raw = os.environ.get("NUM_DRAFTS", "").strip()
+    num_drafts = int(num_drafts_raw) if num_drafts_raw else 3
     seen_ids = load_seen_ids()
     picked = pick_new_stories(seen_ids, num_drafts)
 
