@@ -28,6 +28,8 @@ jobs:
       - name: Generate draft tweets
         env:
           NEWS_TOPIC: ${{ vars.NEWS_TOPIC }}
+          NEWS_COUNTRY: ${{ vars.NEWS_COUNTRY }}
+          NEWS_LANG: ${{ vars.NEWS_LANG }}
           NUM_DRAFTS: ${{ vars.NUM_DRAFTS }}
         run: python generate_draft_tweets.py
 
