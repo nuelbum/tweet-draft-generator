@@ -1,0 +1,48 @@
+name: Daily tweet draft generator
+
+on:
+  schedule:
+    # Runs at 13:00 UTC every day - edit the cron expression to change the time
+    - cron: "0 13 * * *"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  generate-drafts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate draft tweets
+        env:
+          NEWS_TOPIC: ${{ vars.NEWS_TOPIC }}
+          NUM_DRAFTS: ${{ vars.NUM_DRAFTS }}
+        run: python generate_draft_tweets.py
+
+      - name: Open an issue with today's drafts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Tweet drafts - $(date -u +%Y-%m-%d)" \
+            --body-file draft_output.md
+
+      - name: Save updated seen-story list
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_ids.json
+          git diff --quiet --cached || git commit -m "Update seen story log"
+          git push
